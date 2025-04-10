@@ -14,10 +14,6 @@ yellow = '\033[33m'
 ciano = '\033[36m'
 normal = '\033[m'
 
-# Coleta os dados do arquivo gameData.yaml
-with open(Settings().caminhoGameData, 'r', encoding='utf-8') as arquivo:
-    dados = yaml.safe_load(arquivo)
-        
 class Batalha:
     def __init__(self, jogador, monstro):
         self.jogador = jogador
@@ -39,7 +35,7 @@ class Batalha:
         print(green + '                 Sim' + yellow + ' / ' + red + 'Não              ' + normal)
         
         # Checando variável de teste
-        if Settings().teste == True:
+        if settings.teste == True:
             iniciar_jogo = 'SIM'
         else:
             iniciar_jogo = str(input('    --> ')).upper().strip()
@@ -50,7 +46,7 @@ class Batalha:
             print(green + '    Qual valor deseja apostar?')
             
             # Checando variável de teste
-            if Settings().teste == True:
+            if settings.teste == True:
                 self.apostado = 100
             else:
                 self.apostado = float(input('    R$' + normal))
@@ -61,13 +57,13 @@ class Batalha:
     def iniciar_batalha(self):
         
         while self.continuar == True:
-            sleep(0.4)	
+            # sleep(0.1)	
             # Informação na tela
             print(green + f'   {jogador.name}', end=' ')
             print(yellow + f'Lv {jogador.level}' + normal + ' X ' + red + f'{monstro.name}', end=' ')
             print(yellow + f'Lv {monstro.level}')
-            print(f'   Power: {jogador.power}' + normal, end='   X')
-            print(yellow + f'   Power: {monstro.power}' + normal)
+            print(f'   Power: {jogador.power:.2f}' + normal, end='   X')
+            print(yellow + f'   Power: {monstro.power:.2f}' + normal)
 
             # Resultado do round
             if jogador.power > monstro.power:
@@ -86,8 +82,8 @@ class Batalha:
     def sofrimentoDeDano(self, alvo):
         if alvo == 'monstro':
             # Dano no monstro
-            self.monstro.power -= (jogador.power / 20)
-            self.jogador.power += Settings().aumentoDePoder
+            self.monstro.power -= (jogador.power / 30)
+            self.jogador.power += settings.aumentoDePoder
             self.jogador.level += 1
             
             if self.monstro.power <= 0:
@@ -96,7 +92,10 @@ class Batalha:
                 
         elif alvo == 'jogador':
             # Dano no jogador
-            self.jogador.power -= (monstro.power / 20)
+            self.jogador.power -= (monstro.power / 30)
+            # Refletindo o dano no monstro
+            self.monstro.power -= (monstro.power / 100)
+            
             if self.jogador.power <= 0:
                 print(f'O {self.jogador.name} foi derrotado!')
                 Batalha.abatimentoNoDinheiro(self, 'derrota')
@@ -125,25 +124,26 @@ class Batalha:
             self.monstro.name = monstroEscolhido
             self.monstro.power = monstroPower
             
-            # Garante a vantagem com um monstro forte
-            while monstroPower < jogador.power:
-                monstroEscolhido = random.choice(list(monstros.keys()))
-                monstroPower = monstros[monstroEscolhido]
-                self.monstro.name = monstroEscolhido
-                self.monstro.power = monstroPower
-            
+            # Tenta garantir a vantagem com um monstro forte
+            for _ in range(20):
+                if monstroPower < jogador.power:
+                    monstroEscolhido = random.choice(list(monstros.keys()))
+                    monstroPower = monstros[monstroEscolhido]
+                    self.monstro.name = monstroEscolhido
+                    self.monstro.power = monstroPower
+        
         else:
             monstroEscolhido = random.choice(list(monstros.keys()))
             monstroPower = monstros[monstroEscolhido]
             self.monstro.name = monstroEscolhido
             self.monstro.power = monstroPower
-        
+
         return monstroEscolhido, monstroPower
     
     def definirVantagem(self):
         plataformaComVantagem = None # Variável para definir a vantagem do jogo
         
-        if dados['banca']['dinheiro'] < 2000 or Settings().vantagemMaster == True:
+        if dados['banca']['dinheiro'] < 10000 and settings.vantagemMaster == True:
             if random.Random().randint(1, 6) >= 3:
                 plataformaComVantagem = True               
             else:
@@ -162,13 +162,28 @@ class Batalha:
         self.continuar = False
         
         # Atualiza o arquivo gameData.yaml
-        with open(Settings().caminhoGameData, 'w', encoding='utf-8') as arquivo:
+        with open(settings.caminhoGameData, 'w', encoding='utf-8') as arquivo:
             yaml.dump(dados, arquivo, default_flow_style=False, allow_unicode=True)
 
 # Testa a escolha do monstro
 
-jogador = Jogador()
-monstro = Monstro()
-batalha = Batalha(jogador, monstro)
-batalha.escolhaDeMonstro(batalha.plataformaComVantagem)
-batalha.menu()
+if __name__ == "__main__":
+    
+    for i in range(10): # Jogos em sequência
+        # Coleta os dados do arquivo gameData.yaml
+        try:
+            settings = Settings()
+            
+            with open(settings.caminhoGameData, 'r', encoding='utf-8') as arquivo:
+                dados = yaml.safe_load(arquivo)
+                if not isinstance(dados, dict):
+                    raise ValueError("O arquivo YAML não contém um dicionário válido.")
+        except Exception as e:
+            print(f"Erro ao carregar o arquivo YAML: {e}")
+            exit(1)
+        
+        jogador = Jogador()
+        monstro = Monstro()
+        batalha = Batalha(jogador, monstro)
+        batalha.escolhaDeMonstro(batalha.plataformaComVantagem)
+        batalha.menu()
