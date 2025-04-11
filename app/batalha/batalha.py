@@ -1,7 +1,9 @@
 import random
 import yaml
+import openpyxl
 import os
 import pdb
+from openpyxl import Workbook, load_workbook
 from time import sleep
 from typing import List, Dict, Tuple
 from jogador.jogador import Jogador
@@ -32,6 +34,8 @@ class Batalha:
     def __init__(self, jogador:Jogador, monstro:Monstro, dados:Dict[str, Dict[str, float]]):
         self.jogador = jogador
         self.monstro = monstro
+        self.rodadas = 0
+        self.quantidadeDeBoss = 0
         self.continuar: bool = True
         self.dados = dados
         self.settings = Settings()
@@ -43,17 +47,18 @@ class Batalha:
         """
         Menu inicial do jogo, exibe as opções de jogo e inicia a batalha.
         """
-        # Tela inicial
-        print('\n\n\n\n')
-        print(self.cores.yellow + '{:¨^41}'.format('¨'))
-        print('{:¨^41}'.format('| Bem-vindo |'))
-        print('{:¨^41}'.format('| Ao |'))
-        print('{:¨^41}'.format('| JOGO DO PODER |'))
-        print('{:¨^41}'.format('¨'))
-        print('{:-^41}'.format('-'))
-        print('\n\n')
-        print('{:^41}'.format('Deseja entrar na Dungeon do Boss?'))
-        print(self.cores.green + '                 Sim' + self.cores.yellow + ' / ' + self.cores.red + 'Não              ' + self.cores.normal)
+        if self.settings.skip == False:
+            # Tela inicial
+            print('\n\n\n\n')
+            print(self.cores.yellow + '{:¨^41}'.format('¨'))
+            print('{:¨^41}'.format('| Bem-vindo |'))
+            print('{:¨^41}'.format('| Ao |'))
+            print('{:¨^41}'.format('| JOGO DO PODER |'))
+            print('{:¨^41}'.format('¨'))
+            print('{:-^41}'.format('-'))
+            print('\n\n')
+            print('{:^41}'.format('Deseja entrar na Dungeon do Boss?'))
+            print(self.cores.green + '                 Sim' + self.cores.yellow + ' / ' + self.cores.red + 'Não              ' + self.cores.normal)
         
         # Checando variável de teste
         if self.settings.teste == True:
@@ -68,25 +73,24 @@ class Batalha:
             
             # Checando variável de teste
             if self.settings.teste == True:
-                self.apostado = 100
+                self.apostado = random.randint(10, 100)
             else:
                 self.apostado = float(input('    R$' + self.cores.normal))
             print('\n')
-
-            Batalha.iniciar_batalha(self)
             
     def iniciar_batalha(self):
         """
         inicia a batalha entre o jogador e o monstro.
         """
         while self.continuar == True:
-            sleep(self.settings.velocidadeDoJogo) # Velocidade do Jogo
-            # Informação na tela
-            print(self.cores.green + f'   {self.jogador.name}', end=' ')
-            print(self.cores.yellow + f'Lv {self.jogador.level}' + self.cores.normal + ' X ' + self.cores.red + f'{self.monstro.name}', end=' ')
-            print(self.cores.yellow + f'Lv {self.monstro.level}')
-            print(f'   Power: {self.jogador.power:.2f}' + self.cores.normal, end='   X')
-            print(self.cores.yellow + f'   Power: {self.monstro.power:.2f}' + self.cores.normal)
+            if self.settings.skip == False:
+                sleep(self.settings.velocidadeDoJogo) # Velocidade do Jogo
+                # Informação na tela
+                print(self.cores.green + f'   {self.jogador.name}', end=' ')
+                print(self.cores.yellow + f'Lv {self.jogador.level}' + self.cores.normal + ' X ' + self.cores.red + f'{self.monstro.name}', end=' ')
+                print(self.cores.yellow + f'Lv {self.monstro.level}')
+                print(f'   Power: {self.jogador.power:.2f}' + self.cores.normal, end='   X')
+                print(self.cores.yellow + f'   Power: {self.monstro.power:.2f}' + self.cores.normal)
 
             # Resultado do round
             if self.jogador.power > self.monstro.power:
@@ -101,6 +105,7 @@ class Batalha:
                 print(self.cores.ciano + '  -x-x-x-x- Empate -x-x-x-x-' + self.cores.normal + '\n')
                 Batalha.sofrimentoDeDano(self, 'ambos')
 
+            self.rodadas += 1
     
     def sofrimentoDeDano(self, alvo: str):
         """
@@ -132,8 +137,8 @@ class Batalha:
                 Batalha.abatimentoNoDinheiro(self, 'derrota')
         else:
             # Empate
-            self.jogador.power -= (self.monstro.power / 20)
-            self.monstro.power -= (self.jogador.power / 20)
+            self.jogador.power -= (self.monstro.power / self.settings.danoAoJogador)
+            self.monstro.power -= (self.jogador.power / self.settings.danoAoMonstro)
             if self.jogador.power <= 0:
                 print(f'O {self.jogador.name} foi derrotado!')
             elif self.monstro.power <= 0:
@@ -155,6 +160,22 @@ class Batalha:
         """
         monstros: List[str] = self.dados['monstros']
         
+        # Geração aleatória do Boss Infernal
+        if self.monstro.name != 'Boss Infernal':
+            aparicao = self.monstro.bossInfernal()
+            if aparicao == True:
+                self.monstro.name = self.monstro.name
+                self.monstro.power = self.monstro.power
+                self.monstro.level = self.monstro.level
+                
+                sleep(self.settings.velocidadeDoJogoBoss) # Velocidade da aparição do Boss
+                print(self.cores.red + f'   VOCÊ ENCONTROU UM BOSS INFERNAL NIVEL {self.monstro.level}' + self.cores.normal)
+                sleep(self.settings.velocidadeDoJogo)
+                
+                self.quantidadeDeBoss += 1
+                
+                return
+        
         if plataformaComVantagem == True:
             monstroEscolhido: str = random.choice(list(monstros.keys()))
             monstroPower: float = monstros[monstroEscolhido]
@@ -175,22 +196,10 @@ class Batalha:
             self.monstro.name = monstroEscolhido
             self.monstro.power = monstroPower
 
-        # Geração aleatória do Boss Infernal
-        aparicao = self.monstro.bossInfernal()
-        if aparicao == True:
-            self.monstro.name = self.monstro.name
-            self.monstro.power = self.monstro.power
-            self.monstro.level = self.monstro.level
-            
-            sleep(self.settings.velocidadeDoJogoBoss) # Velocidade do Jogo Boss
-            print(self.cores.red + f'   VOCÊ ENCONTROU UM BOSS INFERNAL NIVEL {self.monstro.level}' + self.cores.normal)
-            sleep(self.settings.velocidadeDoJogo)
-            
     def definirVantagem(self):
         """
         Define se a plataforma tem vantagem ou não, baseado no valor da banca e da variável de vantagemMaster.
         """
-        
         plataformaComVantagem: bool = None # Variável para definir a vantagem do jogo
         
         if self.dados['banca']['dinheiro'] < self.settings.valorMinimo and self.settings.vantagemMaster == True:
@@ -198,6 +207,8 @@ class Batalha:
                 plataformaComVantagem = True               
             else:
                 plataformaComVantagem = False
+        else:
+            plataformaComVantagem = False
             
         return plataformaComVantagem
 
@@ -212,8 +223,35 @@ class Batalha:
         else:
             self.dados['banca']['dinheiro'] = self.dados['banca']['dinheiro'] # Valor padrão
         
+        # Coletar e Exportar dados
+        self.exportarDados(resultado)
         self.continuar = False
         
         # Atualiza o arquivo gameData.yaml
         with open(self.settings.caminhoGameData, 'w', encoding='utf-8') as arquivo:
             yaml.dump(self.dados, arquivo, default_flow_style=False, allow_unicode=True)
+            
+    def exportarDados(self, resultado: str = None):
+        try:
+            # Caminho para a pasta e o arquivo
+            pasta = "data"
+            caminho_arquivo = os.path.join(pasta, "relatorio_de_dados.xlsx")
+
+            # Cria a pasta se não existir
+            os.makedirs(pasta, exist_ok=True)
+
+            # Verifica se o arquivo já existe
+            if os.path.exists(caminho_arquivo):
+                wb = load_workbook(caminho_arquivo)
+                ws = wb.active
+            else:
+                wb = Workbook()
+                ws = wb.active
+                ws.title = "Relatório de Dados"
+                ws.append(["Nome", "Nível Máximo", "Rodadas", "Valor Apostado", "Qnt Bosses", "Vantagem", "Resultado"])
+
+            # Adiciona os dados
+            ws.append([self.jogador.name, self.jogador.level, self.rodadas, self.apostado, self.quantidadeDeBoss, self.plataformaComVantagem, resultado.upper()])
+            wb.save(caminho_arquivo)
+        except Exception as e:
+            print(f"Erro ao coletar dados: {e}")
