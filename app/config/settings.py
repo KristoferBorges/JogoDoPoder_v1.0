@@ -2,8 +2,14 @@ import os
 
 class Settings:
     def __init__(self):
-        self.vantagemMaster = False # Variável para definir a vantagem do jogo (Alteração manual para garantir mais ganhos)
-        self.valorMinimo = 10000 # Valor mínimo definido para que a banca comece a ter vantagem (Desativado se vantagemMaster = False)
-        self.teste = True # Variável para definir o testes rápidos sem o menu
+        self.vantagemMaster = False
+        self.valorMinimo = 10000
+        self.teste = True
         self.caminhoGameData = "config/gameData.yaml"
-        self.aumentoDePoder = 312 # Aumento de poder do jogador para cada vitória
+        self.aumentoDePoder = 410
+        self.quantidadeDeJogos = 1
+        self.velocidadeDoJogo = 0.1
+        self.velocidadeDoJogoBoss = 0.5
+        self.danoAoJogador = 30
+        self.danoAoMonstro = 30
+        self.danoRefletidoAoMonstro = 40
