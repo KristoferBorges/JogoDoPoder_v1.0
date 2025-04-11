@@ -17,8 +17,10 @@ if __name__ == "__main__":
             jogador = Jogador()
             monstro = Monstro()
             batalha = Batalha(jogador, monstro, dados)
-            batalha.escolhaDeMonstro(batalha.plataformaComVantagem)
             batalha.menu()
+            batalha.escolhaDeMonstro(batalha.plataformaComVantagem)
+            batalha.iniciar_batalha()
+            
         
     except Exception as e:
         print(f"Erro ao carregar o arquivo YAML: {e}")
