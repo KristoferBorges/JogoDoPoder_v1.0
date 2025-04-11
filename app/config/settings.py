@@ -1,12 +1,12 @@
 class Settings:
     def __init__(self):
-        self.vantagemMaster = False
+        self.vantagemMaster = True
         self.valorMinimo = 10000
         self.teste = True
         self.skip = False
         self.caminhoGameData = "config/gameData.yaml"
         self.aumentoDePoder = 410
-        self.quantidadeDeJogos = 500
+        self.quantidadeDeJogos = 100
         self.velocidadeDoJogo = 0.0
         self.velocidadeDoJogoBoss = 0.0
         self.danoAoJogador = 30

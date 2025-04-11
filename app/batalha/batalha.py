@@ -73,7 +73,7 @@ class Batalha:
             
             # Checando variável de teste
             if self.settings.teste == True:
-                self.apostado = random.randint(10, 100)
+                self.apostado = random.uniform(0.01, 0.99)
             else:
                 self.apostado = float(input('    R$' + self.cores.normal))
             print('\n')
