@@ -4,7 +4,7 @@ class Monstro:
         self.name = ""
         self.level = 1
         self.power = None
-        self.chanceDeAparicao = randint(1, 7)
+        self.chanceDeAparicao = randint(1, 10)
         
     def bossInfernal(self):
         """

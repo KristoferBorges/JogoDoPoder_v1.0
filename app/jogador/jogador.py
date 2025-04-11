@@ -16,7 +16,7 @@ class Jogador:
     def __init__(self):
         self.name: str= "Jogador 1"
         self.level: int = 1
-        self.power: float = randint(1000, 5000)
+        self.power: float = randint(1000, 4000)
         self.apostado: float = 0
     
     def habilidadePoderExtra(self):
