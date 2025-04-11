@@ -3,23 +3,24 @@ import yaml
 import os
 import pdb
 from time import sleep
+from typing import List, Dict, Tuple
 from jogador.jogador import Jogador
 from monstro.monstro import Monstro
 from config.settings import Settings
 
 # Cores
-red = '\033[31m'
-green = '\033[32m'
-yellow = '\033[33m'
-ciano = '\033[36m'
-normal = '\033[m'
+red: str = '\033[31m'
+green: str = '\033[32m'
+yellow: str = '\033[33m'
+ciano: str = '\033[36m'
+normal: str = '\033[m'
 
 class Batalha:
-    def __init__(self, jogador, monstro):
+    def __init__(self, jogador:Jogador, monstro:Monstro):
         self.jogador = jogador
         self.monstro = monstro
-        self.continuar = True
-        self.plataformaComVantagem = Batalha.definirVantagem(self)
+        self.continuar: bool = True
+        self.plataformaComVantagem: bool = Batalha.definirVantagem(self)
     
     def menu(self):
         # Tela inicial
@@ -79,7 +80,7 @@ class Batalha:
                 Batalha.sofrimentoDeDano(self, 'ambos')
 
     
-    def sofrimentoDeDano(self, alvo):
+    def sofrimentoDeDano(self, alvo: str):
         if alvo == 'monstro':
             # Dano no monstro
             self.monstro.power -= (jogador.power / 30)
@@ -116,11 +117,11 @@ class Batalha:
     
     def escolhaDeMonstro(self, plataformaComVantagem):
         jogador = Jogador() # Instância do jogador
-        monstros = dados['monstros']
+        monstros: List[str] = dados['monstros']
         
         if plataformaComVantagem == True:
-            monstroEscolhido = random.choice(list(monstros.keys()))
-            monstroPower = monstros[monstroEscolhido]
+            monstroEscolhido: str = random.choice(list(monstros.keys()))
+            monstroPower: float = monstros[monstroEscolhido]
             self.monstro.name = monstroEscolhido
             self.monstro.power = monstroPower
             
@@ -141,9 +142,9 @@ class Batalha:
         return monstroEscolhido, monstroPower
     
     def definirVantagem(self):
-        plataformaComVantagem = None # Variável para definir a vantagem do jogo
+        plataformaComVantagem: bool = None # Variável para definir a vantagem do jogo
         
-        if dados['banca']['dinheiro'] < 10000 and settings.vantagemMaster == True:
+        if dados['banca']['dinheiro'] < settings.valorMinimo and settings.vantagemMaster == True:
             if random.Random().randint(1, 6) >= 3:
                 plataformaComVantagem = True               
             else:
@@ -151,7 +152,7 @@ class Batalha:
             
         return plataformaComVantagem
 
-    def abatimentoNoDinheiro(self, resultado):
+    def abatimentoNoDinheiro(self, resultado: str):
         if resultado == 'vitoria':
             dados['banca']['dinheiro'] -= self.apostado
         elif resultado == 'derrota':
@@ -164,8 +165,6 @@ class Batalha:
         # Atualiza o arquivo gameData.yaml
         with open(settings.caminhoGameData, 'w', encoding='utf-8') as arquivo:
             yaml.dump(dados, arquivo, default_flow_style=False, allow_unicode=True)
-
-# Testa a escolha do monstro
 
 if __name__ == "__main__":
     
