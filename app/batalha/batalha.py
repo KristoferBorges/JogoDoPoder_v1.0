@@ -3,6 +3,7 @@ import yaml
 import openpyxl
 import os
 import pdb
+from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from time import sleep
 from typing import List, Dict, Tuple
@@ -73,7 +74,7 @@ class Batalha:
             
             # Checando variável de teste
             if self.settings.teste == True:
-                self.apostado = random.uniform(0.01, 0.99)
+                self.apostado = random.uniform(10.0, 100.0)
             else:
                 self.apostado = float(input('    R$' + self.cores.normal))
             print('\n')
@@ -227,6 +228,7 @@ class Batalha:
         self.exportarDados(resultado)
         self.continuar = False
         
+        
         # Atualiza o arquivo gameData.yaml
         with open(self.settings.caminhoGameData, 'w', encoding='utf-8') as arquivo:
             yaml.dump(self.dados, arquivo, default_flow_style=False, allow_unicode=True)
@@ -234,8 +236,8 @@ class Batalha:
     def exportarDados(self, resultado: str = None):
         try:
             # Caminho para a pasta e o arquivo
-            pasta = "data"
-            caminho_arquivo = os.path.join(pasta, "relatorio_de_dados.xlsx")
+            pasta: str = "data"
+            caminho_arquivo: str = os.path.join(pasta, f"Relatorio.xlsx")
 
             # Cria a pasta se não existir
             os.makedirs(pasta, exist_ok=True)
@@ -252,6 +254,8 @@ class Batalha:
 
             # Adiciona os dados
             ws.append([self.jogador.name, self.jogador.level, self.rodadas, self.apostado, self.quantidadeDeBoss, self.plataformaComVantagem, resultado.upper()])
+
             wb.save(caminho_arquivo)
+                
         except Exception as e:
             print(f"Erro ao coletar dados: {e}")
