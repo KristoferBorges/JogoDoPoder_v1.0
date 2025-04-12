@@ -71,7 +71,7 @@ class Batalha:
             # Inserção de Dinheiro
             print(self.cores.yellow + '    MAX - R$ 100,00' + self.cores.normal)
             print(self.cores.green + '    Qual valor deseja apostar?')
-            
+        
             # Checando variável de teste
             if self.settings.teste == True:
                 self.apostado = random.uniform(10.0, 100.0)
@@ -79,6 +79,10 @@ class Batalha:
             else:
                 self.apostado = float(input('    R$' + self.cores.normal))
             print('\n')
+        
+        else:
+            print(self.cores.red + '    Sua escolha foi sábia!' + self.cores.normal)
+            exit(0)
             
     def iniciar_batalha(self):
         """
