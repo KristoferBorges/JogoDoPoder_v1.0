@@ -35,8 +35,8 @@ class Batalha:
     def __init__(self, jogador:Jogador, monstro:Monstro, dados:Dict[str, Dict[str, float]]):
         self.jogador = jogador
         self.monstro = monstro
-        self.rodadas = 0
-        self.quantidadeDeBoss = 0
+        self.rodadas: int = 0
+        self.quantidadeDeBoss: int = 0
         self.continuar: bool = True
         self.dados = dados
         self.settings = Settings()
@@ -75,6 +75,7 @@ class Batalha:
             # Checando variável de teste
             if self.settings.teste == True:
                 self.apostado = random.uniform(10.0, 100.0)
+                self.apostado = round(self.apostado, 2)
             else:
                 self.apostado = float(input('    R$' + self.cores.normal))
             print('\n')
@@ -218,11 +219,11 @@ class Batalha:
         Aplica o abatimento no dinheiro da banca baseado no resultado da batalha.
         """
         if resultado == 'vitoria':
-            self.dados['banca']['dinheiro'] -= self.apostado
+            self.dados['banca']['dinheiro'] -= round(self.apostado, 2)
         elif resultado == 'derrota':
-            self.dados['banca']['dinheiro'] += self.apostado
+            self.dados['banca']['dinheiro'] += round(self.apostado, 2)
         else:
-            self.dados['banca']['dinheiro'] = self.dados['banca']['dinheiro'] # Valor padrão
+            self.dados['banca']['dinheiro'] = round(self.dados['banca']['dinheiro'], 2) # Valor padrão
         
         # Coletar e Exportar dados
         self.exportarDados(resultado)
@@ -253,7 +254,7 @@ class Batalha:
                 ws.append(["Nome", "Nível Máximo", "Rodadas", "Valor Apostado", "Qnt Bosses", "Vantagem", "Resultado"])
 
             # Adiciona os dados
-            ws.append([self.jogador.name, self.jogador.level, self.rodadas, self.apostado, self.quantidadeDeBoss, self.plataformaComVantagem, resultado.upper()])
+            ws.append([self.jogador.name, self.jogador.level, self.rodadas, round(self.apostado, 2), self.quantidadeDeBoss, self.plataformaComVantagem, resultado.upper()])
 
             wb.save(caminho_arquivo)
                 

@@ -1,10 +1,10 @@
 from random import randint
 class Monstro:
     def __init__(self):
-        self.name = ""
-        self.level = 1
-        self.power = None
-        self.chanceDeAparicao = randint(1, 10)
+        self.name: str = ""
+        self.level: int = 1
+        self.power: float = None
+        self.chanceDeAparicao: int = randint(1, 10)
         
     def bossInfernal(self):
         """
