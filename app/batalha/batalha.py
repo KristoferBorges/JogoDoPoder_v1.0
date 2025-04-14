@@ -66,9 +66,30 @@ class Batalha:
             iniciar_jogo = 'SIM'
         else:
             iniciar_jogo = str(input('    --> ')).upper().strip()
-            
+
         if iniciar_jogo == 'SIM' or iniciar_jogo == 'S':
-            # Inserção de Dinheiro
+            # Escolha de habilidade
+            print(f"    {self.cores.ciano}[1] - Habilidade de Aumento de Poder")
+            print(f"    {self.cores.ciano}[2] - Habilidade de Pular Boss")
+            print(f"    {self.cores.ciano}[3] - Nenhuma habilidade")
+            print('\n')
+            
+            # Checando variável de teste
+            if self.settings.teste == False:
+                escolhaDeHabilidade = str(input('    --> ')).upper().strip()
+                if escolhaDeHabilidade == '1':
+                    self.jogador.habilidade = 'Aumento de Poder'
+                elif escolhaDeHabilidade == '2':
+                    self.jogador.habilidade = 'Pular Boss'
+                elif escolhaDeHabilidade == '3':
+                    self.jogador.habilidade = 'Nenhuma habilidade'
+                else:
+                    self.jogador.habilidade = 'Nenhuma habilidade'
+            else:
+                self.jogador.habilidade = f'{self.settings.habilidadeTeste}'
+            
+             
+            # Definição da aposta
             print(self.cores.yellow + '    MAX - R$ 100,00' + self.cores.normal)
             print(self.cores.green + '    Qual valor deseja apostar?')
         
@@ -89,10 +110,14 @@ class Batalha:
         inicia a batalha entre o jogador e o monstro.
         """
         while self.continuar == True:
+            if self.jogador.habilidadePoderExtra() == True:
+                sleep(self.settings.velocidadeAumentoDePoder) # Velocidade do Jogo
+                print(f'{self.cores.green}   HABILIDADE ATIVADA: AUMENTO DE PODER > {self.cores.normal}{self.jogador.aumentoDePoder}{self.cores.green} <{self.cores.normal}\n')
+            
             if self.settings.skip == False:
                 sleep(self.settings.velocidadeDoJogo) # Velocidade do Jogo
                 # Informação na tela
-                print(self.cores.green + f'   {self.jogador.name}', end=' ')
+                print(self.cores.green + f'     {self.jogador.name}', end=' ')
                 print(self.cores.yellow + f'Lv {self.jogador.level}' + self.cores.normal + ' X ' + self.cores.red + f'{self.monstro.name}', end=' ')
                 print(self.cores.yellow + f'Lv {self.monstro.level}')
                 print(f'   Power: {self.jogador.power:.2f}' + self.cores.normal, end='   X')
@@ -100,15 +125,15 @@ class Batalha:
 
             # Resultado do round
             if self.jogador.power > self.monstro.power:
-                print(self.cores.green + '  -x-x-x-x- Usuário Win -x-x-x-x-' + self.cores.normal + '\n')
+                print(self.cores.green + '     -x-x-x-x- Usuário Win -x-x-x-x-' + self.cores.normal + '\n')
                 Batalha.sofrimentoDeDano(self, 'monstro')
                 
             elif self.jogador.power < self.monstro.power:
-                print(self.cores.red + '  -x-x-x-x- Monstro Win -x-x-x-x-' + self.cores.normal + '\n')
+                print(self.cores.red + '     -x-x-x-x- Monstro Win -x-x-x-x-' + self.cores.normal + '\n')
                 Batalha.sofrimentoDeDano(self, 'jogador')
                 
             else:
-                print(self.cores.ciano + '  -x-x-x-x- Empate -x-x-x-x-' + self.cores.normal + '\n')
+                print(self.cores.ciano + '     -x-x-x-x- Empate -x-x-x-x-' + self.cores.normal + '\n')
                 Batalha.sofrimentoDeDano(self, 'ambos')
 
             self.rodadas += 1
@@ -174,10 +199,21 @@ class Batalha:
                 self.monstro.power = self.monstro.power
                 self.monstro.level = self.monstro.level
                 
-                sleep(self.settings.velocidadeDoJogoBoss) # Velocidade da aparição do Boss
-                print(self.cores.red + f'   VOCÊ ENCONTROU UM BOSS INFERNAL NIVEL {self.monstro.level}' + self.cores.normal)
+                sleep(self.settings.velocidadeDoJogoBoss)
+                print(self.cores.red + f'   VOCÊ ENCONTROU UM BOSS INFERNAL NIVEL {self.monstro.level}\n' + self.cores.normal)
                 sleep(self.settings.velocidadeDoJogo)
                 
+                if self.jogador.habilidade == 'Pular Boss' and self.jogador.qntHabilidadePularBoss > 0:
+                    if self.jogador.qntHabilidadePularBoss > 0:
+                        self.jogador.qntHabilidadePularBoss = self.jogador.qntHabilidadePularBoss - 1
+                    print(self.cores.yellow + f'   VOCÊ CONSEGUIU FUGIR GRAÇAS A SUA HABILIDADE! [{self.jogador.qntHabilidadePularBoss}/1]\n' + self.cores.normal)
+                    sleep(self.settings.velocidadeDoJogoBoss)
+                    monstroEscolhido = random.choice(list(monstros.keys()))
+                    monstroPower = monstros[monstroEscolhido]
+                    self.monstro.name = monstroEscolhido
+                    self.monstro.level = random.randint(1, 40)
+                    self.monstro.power = monstroPower
+                    
                 self.quantidadeDeBoss += 1
                 
                 return
@@ -200,7 +236,9 @@ class Batalha:
             monstroEscolhido = random.choice(list(monstros.keys()))
             monstroPower = monstros[monstroEscolhido]
             self.monstro.name = monstroEscolhido
-            self.monstro.power = monstroPower
+            self.monstro.level = random.randint(1, 40)
+            self.monstro.power = monstroPower 
+            
 
     def definirVantagem(self):
         """
@@ -242,7 +280,7 @@ class Batalha:
         try:
             # Caminho para a pasta e o arquivo
             pasta: str = "data"
-            caminho_arquivo: str = os.path.join(pasta, f"Relatorio.xlsx")
+            caminho_arquivo: str = os.path.join(pasta, f"Relatorio_.xlsx")
 
             # Cria a pasta se não existir
             os.makedirs(pasta, exist_ok=True)
@@ -255,10 +293,10 @@ class Batalha:
                 wb = Workbook()
                 ws = wb.active
                 ws.title = "Relatório de Dados"
-                ws.append(["Nome", "Nível Máximo", "Rodadas", "Valor Apostado", "Qnt Bosses", "Vantagem", "Resultado"])
+                ws.append(["Nome", "Nível Máximo", "Rodadas", "Valor Apostado", "Qnt Bosses", "Habilidade", "Vantagem", "Resultado"])
 
             # Adiciona os dados
-            ws.append([self.jogador.name, self.jogador.level, self.rodadas, round(self.apostado, 2), self.quantidadeDeBoss, self.plataformaComVantagem, resultado.upper()])
+            ws.append([self.jogador.name, self.jogador.level, self.rodadas, round(self.apostado, 2), self.quantidadeDeBoss, self.jogador.habilidade, self.plataformaComVantagem, resultado.upper()])
 
             wb.save(caminho_arquivo)
                 

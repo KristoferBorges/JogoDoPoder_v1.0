@@ -13,16 +13,14 @@ if __name__ == "__main__":
                 dados = yaml.safe_load(arquivo)
                 if not isinstance(dados, dict):
                     raise ValueError("O arquivo YAML não contém um dicionário válido.")
-        
+            
             jogador = Jogador()
             monstro = Monstro()
             batalha = Batalha(jogador, monstro, dados)
             batalha.menu()
             batalha.escolhaDeMonstro(batalha.plataformaComVantagem)
             batalha.iniciar_batalha()
-        
+    
     except Exception as e:
-        print(f"Erro ao carregar o arquivo YAML: {e}")
+        print(f"Erro no main.py, carregamento comprometido - {e}")
         exit(1)
-        
-        
